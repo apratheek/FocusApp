@@ -116,15 +116,15 @@ class FocusApp:
         self.__generateListBoxContextMenu__()
         
     def __displayAllDomainsInListBox__(self):
-        """Parses through the domains.list file and loads all the domains into the listbox"""
+        """Parses through the .domains.list file and loads all the domains into the listbox"""
         # Delete all the elements
         self.listBox.delete(0, tkinter.END)
-        # Open the domains.list file here and populate the entries
-        if not pathlib.Path("domains.list").is_file():
-            # Create an domains.list file here
-            open("domains.list", "w").close()
-        # domains.list exists here
-        domainsFile = open("domains.list", "r")
+        # Open the .domains.list file here and populate the entries
+        if not pathlib.Path(".domains.list").is_file():
+            # Create an .domains.list file here
+            open(".domains.list", "w").close()
+        # .domains.list exists here
+        domainsFile = open(".domains.list", "r")
         domainsList = domainsFile.read().split("\n")
         i = 1
         for domain in domainsList:
@@ -169,7 +169,7 @@ class FocusApp:
         """Called when the start button is pressed"""
         print("Start button has been clicked!")
         # Fetch the time in the slider
-        # Read all the sites in domains.list. If no domains.list file is present, display a messagebox stating so.
+        # Read all the sites in .domains.list. If no .domains.list file is present, display a messagebox stating so.
         # Create a .stats file, with endtime
 
         return
@@ -186,15 +186,15 @@ class FocusApp:
             return
         # Clear the value in the entry widget
         self.entry.delete(0, tkinter.END)
-        if not pathlib.Path("domains.list").is_file():
-            # Create an domains.list file here
-            open("domains.list", "w").close()
+        if not pathlib.Path(".domains.list").is_file():
+            # Create an .domains.list file here
+            open(".domains.list", "w").close()
         # Read all domains
-        domainsList = open("domains.list", "r").read().split("\n")
+        domainsList = open(".domains.list", "r").read().split("\n")
         # Prepend to the list
         domainsList.insert(0, domain)
         # Write to the file
-        domainsFile = open("domains.list", "w")
+        domainsFile = open(".domains.list", "w")
         domainsFile.write("\n".join(domainsList))
         domainsFile.close()
         self.__displayAllDomainsInListBox__()
@@ -205,9 +205,9 @@ class FocusApp:
         if value == "":
             return
         # Read the file and store all the elements in a list
-        domainsList = open("domains.list", "r").read().split("\n")
+        domainsList = open(".domains.list", "r").read().split("\n")
         domainsList.remove(value)
-        domainsFile = open("domains.list", "w")
+        domainsFile = open(".domains.list", "w")
         domainsFile.write("\n".join(domainsList))
         domainsFile.close()
         self.__displayAllDomainsInListBox__()
