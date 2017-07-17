@@ -1,6 +1,9 @@
 import tkinter
 import pathlib
 import time
+from tkinter import messagebox
+import shutil
+import subprocess
 
 class FocusApp:
     """
@@ -17,13 +20,6 @@ class FocusApp:
         self.timerBeingDisplayed = False
 
         # Start building the GUI here
-        self.__generateParentWindow__()
-        self.__generateSlider__()
-        self.__generateStartButton__()
-        self.__generateViewButton__()
-        
-    def __generateParentWindow__(self):
-        """Creates the root window"""
         self.parentWindow = tkinter.Tk()
         self.parentWindow.title("FocusApp")
         self.parentWindow.geometry(str(self.rootWidth) + "x" + str(self.rootHeight))
@@ -31,14 +27,33 @@ class FocusApp:
         self.img = tkinter.PhotoImage(file='favicon.gif')
         self.parentWindow.tk.call('wm', 'iconphoto', self.parentWindow._w, self.img)
         
+    
+    def __clearParentWindowCanvas__(self):
+        """Method deletes all the child elements of the parentWindow node"""
+        for child in self.parentWindow.winfo_children():
+            try:
+                child.destroy()
+            except:
+                pass
+            # child.destroy()
+        
+    def __generateParentWindow__(self):
+        """Creates the root window"""
+        self.__clearParentWindowCanvas__()
+        self.__generateSlider__()
+        self.__generateStartButton__()
+        self.__generateViewButton__()
+        # Check if /etc/.hosts.backup already exists. If it does, then copy it back to /etc/hosts. Otherwise, do nothing
+        
+        
     def __generateSlider__(self):
         """Creates the slider present on the root window that enables time to be selected"""
         self.sliderLabel = tkinter.Label(self.parentWindow, text="Time (in hours)")
         # self.sliderLabel.place(x = (self.rootWidth - self.sliderWidth)/2, y = 10, width=self.sliderWidth, height=self.sliderHeight)
         self.sliderLabel.pack()
-        self.slider = tkinter.Scale(self.parentWindow, from_=0, to=24, length=self.sliderWidth, resolution=0.5, orient="horizontal")
+        self.slider = tkinter.Scale(self.parentWindow, from_=0.5, to=24, length=self.sliderWidth, resolution=0.5, orient="horizontal")
         # self.slider.grid(row=5, column=10)
-        self.slider.set(23)
+        self.slider.set(0.5)
         # self.slider.pack()
         self.slider.place(x = (self.rootWidth - self.sliderWidth)/2, y = 20, width=self.sliderWidth, height=self.sliderHeight)
 
@@ -98,7 +113,6 @@ class FocusApp:
             if event.widget.curselection() == ():
                 return
             # Otherwise, don't display the menu
-            # self.listboxContextMenu.post(event.x_root, event.y_root)
             self.listboxContextMenu.tk_popup(event.x_root, event.y_root)
         # attach popup to canvas
         self.listBox.bind("<Button-3>", popup)
@@ -114,6 +128,15 @@ class FocusApp:
         self.__generateAddButton__()
         self.__generateListBox__()
         self.__generateListBoxContextMenu__()
+    
+    def __generateTimerWindow__(self):
+        """Creates a timer window that displays the time left before sites would be automatically unblocked"""
+        self.__clearParentWindowCanvas__()
+
+        # Add a label here
+        self.timerWindowLabel = tkinter.Label(self.parentWindow, text="Hey")
+        self.timerWindowLabel.pack()
+        # self.timerWindow.mainloop()
         
     def __displayAllDomainsInListBox__(self):
         """Parses through the .domains.list file and loads all the domains into the listbox"""
@@ -131,48 +154,125 @@ class FocusApp:
             self.listBox.insert(i, domain)
             i += 1
         domainsFile.close()
+    
+    def __writeToHosts__(self):
+        """Method reads the .domains.list file and writes to /etc/hosts"""
+        domainsList = open(".domains.list", "r").read().split("\n")
+        hostsFile = ""
+        for domain in domainsList:
+            if domain == "":
+                continue
+            hostsFile += "127.0.0.1 " + domain + "\n"
+            hostsFile += "::1       " + domain + "\n\n"
+        # print("Hosts file has become: \n\n", hostsFile)
+        f = open("/etc/hosts", "w")
+        f.write(hostsFile)
+        f.close()
         
     def start(self):
         """Starts the GUI"""
         # Read the .stats file.   
         if not pathlib.Path(".stats").is_file():
             # If no .stats file is present, start the mainloop.
-            self.parentWindow.mainloop()
+            # print(".stats file is not present")
+            self.__generateParentWindow__()
         else:
             # .stats file is present.
+            # print("*****.stats file is present*****")
             # Read the endtime
             endTime = 0
             try:
                 endTime = int(open(".stats", "r").read())
+                # print("End Time is ", endTime)
             except:
                 endTime = 0
+                # print("While fetching end time, error occurred, hence, setting end time to ", endTime)
             currentTime = time.time()
             if currentTime > endTime:
                 # If cur_time > endtime, start the mainloop.
-                self.parentWindow.mainloop()
+                # print("Current time is greater than endtime. Starting mainloop.")
+                self.__generateParentWindow__()
             else:
                 # Otherwise, display a box with remaining time.
-                self.displayTimer(endTime - currentTime)
+                # print("Sites are still blocked.")
+                self.initTimer(endTime - currentTime)
+        self.parentWindow.mainloop()
 
-    def displayTimer(timeLeft):
-        """Method displays a timer"""
-        if not self.timerBeingDisplayed:
-            self.timerBeingDisplayed = True
+    def initTimer(self, timeLeft):
+        self.timeLeft = int(timeLeft)
+        """Method initialises a timer"""
+        # Create a timer window here
+        self.__generateTimerWindow__()
+        self.startTimer()
+        
+    def startTimer(self):
+        """Method starts the timer"""
+        if self.timeLeft == 0:
+            # Delete contents from .stats
+            open(".stats", "w").close()
+            self.__clearParentWindowCanvas__()
+            # Copy back /etc/.hosts.backup to /etc/hosts
             try:
-                self.parentWindow.destroy()
-            except:
+                
+                shutil.copy2("/etc/.hosts.backup", "/etc/hosts")
+            except Exception as e:
+                # print("While copying /etc/.hosts.backup to /etc/hosts, error is ", e)
                 pass
-        
-        
+            reloadDNS()
+            self.start()
+        else:
+            self.timeLeft -= 1
+            self.timerWindowLabel.config(text=str(self.timeLeft))
+            self.timerWindowLabel.after(10, self.startTimer)
     
     def startButtonAction(self):
         """Called when the start button is pressed"""
-        print("Start button has been clicked!")
-        # Fetch the time in the slider
-        # Read all the sites in .domains.list. If no .domains.list file is present, display a messagebox stating so.
-        # Create a .stats file, with endtime
+        # Ask for sudo permission
+        # try:
+        #     subprocess.check_call(["gksudo", "su"])
+        # except subprocess.CalledProcessError:
+        #     messagebox.showinfo("message", "OOOOPS...\nWrong password!")
+        #     return
+        # else:
+        #     messagebox.showinfo("message", "Login successful!")
 
-        return
+
+
+        # Fetch the time in the slider
+        timerVal = self.slider.get()
+        # print("Timer value is ", timerVal)
+        # Read all the sites in .domains.list. 
+        if not pathlib.Path(".domains.list").is_file():
+            # Create an .domains.list file here
+            open(".domains.list", "w").close()
+        # Read all domains
+        domainsFile = open(".domains.list", "r").read()
+        if domainsFile == "":
+            # If no .domains.list file is present, display a messagebox stating so.
+            messagebox.showerror("FocusApp Error", "No domains added yet. Add them by clicking the View button.")
+            return
+        
+        # Make a backup of /etc/hosts to /etc/.hosts.backup
+        try:
+            open("/etc/.hosts.backup", "w").close()
+            shutil.copy2("/etc/hosts", "/etc/.hosts.backup")
+        except Exception as e:
+            # print("While copying /etc/hosts to /etc/.hosts.backup, error is ", e)
+            pass
+        
+        self.__writeToHosts__()
+
+        reloadDNS()
+
+        # Create a .stats file, with endtime
+        curTime = int(time.time())
+        endTime = curTime + int(timerVal * 3600)
+        f = open(".stats", "w")
+        f.write(str(endTime))
+        f.close()
+        # Call initTimer here
+        self.initTimer(endTime - curTime)
+        
 
     def viewButtonAction(self):
         """Called when the view button is pressed. Will generate another window that will list all the sites that need to be blocked."""
@@ -212,11 +312,16 @@ class FocusApp:
         domainsFile.close()
         self.__displayAllDomainsInListBox__()
 
+
+def reloadDNS():
+    """Function that reloads the /etc/hosts file"""
+    return
+
 """
 TODO
-4. Handle start button action. Once the process begins, destroy the parentWindow.
+4. Handle start button action. Once the process starts, set the .stats file, and create a /etc/hosts file after copying the existing file to /etc/.hosts.backup.
 5. Use grid to restyle the app.
-6. Display a timer in case the process had already started. Try to destroy the parentWindow.
-7. After the timer ends, display the parent window.
-8. While rewriting the /etc/hosts file, create a backup /etc/hosts.backup. Also write for IPv4 and IPv6.
+8. While rewriting the /etc/hosts file, create a backup /etc/.hosts.backup. Also write for IPv4 and IPv6.
+9. Check how to ask for permission for sudo usage.
+10. When a timer ends, or the parentWindow is displayed in its normal form, then copy back the /etc/.hosts.backup file to /etc/hosts if exists.
 """
