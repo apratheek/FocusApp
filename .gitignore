@@ -4,3 +4,4 @@ __pycache__/
 .domains.list
 build/
 *.spec
+.DS_Store
