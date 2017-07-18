@@ -1,7 +1,13 @@
-import tkinter
+try:
+    import tkinter
+except:
+    import Tkinter as tkinter
 import pathlib
 import time
-from tkinter import messagebox
+try:
+    from tkinter import messagebox
+except:
+    import tkMessageBox
 import shutil
 import subprocess
 import sys
