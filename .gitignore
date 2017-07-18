@@ -3,4 +3,4 @@ __pycache__/
 .stats
 .domains.list
 build/
-main.spec
+*.spec
