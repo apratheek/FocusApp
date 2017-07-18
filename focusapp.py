@@ -162,11 +162,11 @@ class FocusApp:
         # Delete all the elements
         self.listBox.delete(0, tkinter.END)
         # Open the .domains.list file here and populate the entries
-        if not pathlib.Path(".domains.list").is_file():
+        if not pathlib.Path(resource_path(".domains.list")).is_file():
             # Create an .domains.list file here
-            open(".domains.list", "w").close()
+            open(resource_path(".domains.list"), "w").close()
         # .domains.list exists here
-        domainsFile = open(".domains.list", "r")
+        domainsFile = open(resource_path(".domains.list"), "r")
         domainsList = domainsFile.read().split("\n")
         i = 1
         for domain in domainsList:
@@ -176,7 +176,7 @@ class FocusApp:
     
     def __writeToHosts__(self):
         """Method reads the .domains.list file and writes to /etc/hosts"""
-        domainsList = open(".domains.list", "r").read().split("\n")
+        domainsList = open(resource_path(".domains.list"), "r").read().split("\n")
         hostsFile = ""
         for domain in domainsList:
             if domain == "":
@@ -191,7 +191,7 @@ class FocusApp:
     def start(self):
         """Starts the GUI"""
         # Read the .stats file.   
-        if not pathlib.Path(".stats").is_file():
+        if not pathlib.Path(resource_path(".stats")).is_file():
             # If no .stats file is present, start the mainloop.
             # print(".stats file is not present")
             self.__generateParentWindow__()
@@ -201,7 +201,7 @@ class FocusApp:
             # Read the endtime
             endTime = 0
             try:
-                endTime = int(open(".stats", "r").read())
+                endTime = int(open(resource_path(".stats"), "r").read())
                 # print("End Time is ", endTime)
             except:
                 endTime = 0
@@ -228,7 +228,7 @@ class FocusApp:
         """Method starts the timer"""
         if self.timeLeft == 0:
             # Delete contents from .stats
-            open(".stats", "w").close()
+            open(resource_path(".stats"), "w").close()
             self.__clearParentWindowCanvas__()
             # Copy back /etc/.hosts.backup to /etc/hosts
             try:
@@ -261,11 +261,11 @@ class FocusApp:
         timerVal = self.slider.get()
         # print("Timer value is ", timerVal)
         # Read all the sites in .domains.list. 
-        if not pathlib.Path(".domains.list").is_file():
+        if not pathlib.Path(resource_path(".domains.list")).is_file():
             # Create an .domains.list file here
-            open(".domains.list", "w").close()
+            open(resource_path(".domains.list"), "w").close()
         # Read all domains
-        domainsFile = open(".domains.list", "r").read()
+        domainsFile = open(resource_path(".domains.list"), "r").read()
         if domainsFile == "":
             # If no .domains.list file is present, display a messagebox stating so.
             messagebox.showerror("FocusApp Error", "No domains added yet. Add them by clicking the View button.")
@@ -286,7 +286,7 @@ class FocusApp:
         # Create a .stats file, with endtime
         curTime = int(time.time())
         endTime = curTime + int(timerVal * 3600)
-        f = open(".stats", "w")
+        f = open(resource_path(".stats"), "w")
         f.write(str(endTime))
         f.close()
         # Call initTimer here
@@ -305,15 +305,15 @@ class FocusApp:
             return
         # Clear the value in the entry widget
         self.entry.delete(0, tkinter.END)
-        if not pathlib.Path(".domains.list").is_file():
+        if not pathlib.Path(resource_path(".domains.list")).is_file():
             # Create an .domains.list file here
-            open(".domains.list", "w").close()
+            open(resource_path(".domains.list"), "w").close()
         # Read all domains
-        domainsList = open(".domains.list", "r").read().split("\n")
+        domainsList = open(resource_path(".domains.list"), "r").read().split("\n")
         # Prepend to the list
         domainsList.insert(0, domain)
         # Write to the file
-        domainsFile = open(".domains.list", "w")
+        domainsFile = open(resource_path(".domains.list"), "w")
         domainsFile.write("\n".join(domainsList))
         domainsFile.close()
         self.__displayAllDomainsInListBox__()
@@ -324,9 +324,9 @@ class FocusApp:
         if value == "":
             return
         # Read the file and store all the elements in a list
-        domainsList = open(".domains.list", "r").read().split("\n")
+        domainsList = open(resource_path(".domains.list"), "r").read().split("\n")
         domainsList.remove(value)
-        domainsFile = open(".domains.list", "w")
+        domainsFile = open(resource_path(".domains.list"), "w")
         domainsFile.write("\n".join(domainsList))
         domainsFile.close()
         self.__displayAllDomainsInListBox__()
