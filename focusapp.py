@@ -4,6 +4,19 @@ import time
 from tkinter import messagebox
 import shutil
 import subprocess
+import sys
+import os.path
+
+def resource_path(relative_path):
+    """ Get absolute path to resource, works for dev and for PyInstaller """
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
+
 
 class FocusApp:
     """
@@ -24,7 +37,7 @@ class FocusApp:
         self.parentWindow.title("FocusApp")
         self.parentWindow.geometry(str(self.rootWidth) + "x" + str(self.rootHeight))
         # Attach the logo here
-        self.img = tkinter.PhotoImage(file='favicon.gif')
+        self.img = tkinter.PhotoImage(file=resource_path('favicon.gif'))
         self.parentWindow.tk.call('wm', 'iconphoto', self.parentWindow._w, self.img)
         
     
@@ -319,9 +332,8 @@ def reloadDNS():
 
 """
 TODO
-4. Handle start button action. Once the process starts, set the .stats file, and create a /etc/hosts file after copying the existing file to /etc/.hosts.backup.
 5. Use grid to restyle the app.
-8. While rewriting the /etc/hosts file, create a backup /etc/.hosts.backup. Also write for IPv4 and IPv6.
 9. Check how to ask for permission for sudo usage.
-10. When a timer ends, or the parentWindow is displayed in its normal form, then copy back the /etc/.hosts.backup file to /etc/hosts if exists.
+11. Make the code portable to work on windows as well.
+12. Set after() time to 1000, from 1.
 """
