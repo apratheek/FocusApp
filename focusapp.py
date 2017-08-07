@@ -242,7 +242,7 @@ class FocusApp:
         else:
             self.timeLeft -= 1
             self.timerWindowLabel.config(text=str(self.timeLeft))
-            self.timerWindowLabel.after(10, self.startTimer)
+            self.timerWindowLabel.after(1000, self.startTimer)
     
     def startButtonAction(self):
         """Called when the start button is pressed"""
