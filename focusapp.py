@@ -184,7 +184,11 @@ class FocusApp:
             hostsFile += "127.0.0.1 " + domain + "\n"
             hostsFile += "::1       " + domain + "\n\n"
         # print("Hosts file has become: \n\n", hostsFile)
+        # Read from "/etc/.hosts.backup"
+        existingDNS = open("/etc/.hosts.backup", "r").read()
         f = open("/etc/hosts", "w")
+        f.write(existingDNS)
+        f.write("\n\n")
         f.write(hostsFile)
         f.close()
         
